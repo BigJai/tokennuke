@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codemunch-pro"
+version = "0.1.0"
+description = "Intelligent code indexing MCP server. Tree-sitter AST extraction, hybrid search (FTS5 + vector), call graphs, 10 languages, incremental indexing."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+  { name = "Jai Dunlop", email = "jaidunlop85@gmail.com" },
+]
+keywords = [
+  "mcp",
+  "mcp-server",
+  "code-indexing",
+  "tree-sitter",
+  "code-search",
+  "call-graph",
+  "ast",
+  "developer-tools",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Text Processing :: Indexing",
+]
+dependencies = [
+  "mcp[cli]>=1.6.0",
+  "tree-sitter-language-pack>=0.7.0",
+  "httpx>=0.27.0",
+  "fastembed>=0.6.0",
+  "sqlite-vec>=0.1.0",
+  "pathspec>=0.12.0",
+]
+
+[project.scripts]
+codemunch-pro = "codemunch_pro.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/BigJai/codemunch-pro"
+Repository = "https://github.com/BigJai/codemunch-pro"
+Issues = "https://github.com/BigJai/codemunch-pro/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codemunch_pro"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
