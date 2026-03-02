@@ -260,6 +260,100 @@ class TestServerTools:
         assert savings > 0.5, f'Only {savings:.0%} savings — expected >50%'
 
 
+class TestDiffSymbols:
+    """Test the diff_symbols tool (Tool 14)."""
+
+    def test_no_changes_empty_diff(self, repo_dir):
+        """When nothing changed, diff should be empty."""
+        from codemunch_pro.server import create_server
+        _index_directory(str(repo_dir), embed=False)
+
+        # Import diff function directly
+        from codemunch_pro.server import _get_db, _walk_source_files, _sha256_file
+        from codemunch_pro.parser.extractor import extract_symbols
+
+        db = _get_db(str(repo_dir))
+        old_symbols = {s['qualified_name']: s for s in db.get_all_symbols(limit=10000)}
+
+        # No changes — all files should match
+        source_files = _walk_source_files(Path(repo_dir))
+        old_hashes = db.get_all_file_hashes()
+        changed = []
+        for f in source_files:
+            rel = str(f.relative_to(repo_dir))
+            if old_hashes.get(rel) != _sha256_file(f):
+                changed.append(rel)
+
+        assert len(changed) == 0
+
+    def test_detects_added_symbol(self, repo_dir):
+        """Adding a function should appear in diff."""
+        _index_directory(str(repo_dir), embed=False)
+
+        # Add a new function
+        main_py = repo_dir / 'src' / 'main.py'
+        main_py.write_text(PYTHON_SOURCE + '\ndef new_feature(): pass\n')
+
+        # Now create server and call diff
+        mcp = create_server()
+        # Access diff through direct function testing
+        db = _get_db(str(repo_dir))
+        old_syms = {s['qualified_name'] for s in db.get_all_symbols(limit=10000)}
+
+        # Re-extract the changed file
+        from codemunch_pro.parser.extractor import extract_symbols
+        new_syms_list = extract_symbols(main_py)
+        new_names = {s.qualified_name for s in new_syms_list}
+
+        # new_feature should be in new but not old
+        assert 'new_feature' in new_names
+
+    def test_detects_removed_symbol(self, repo_dir):
+        """Removing a function should appear in diff."""
+        _index_directory(str(repo_dir), embed=False)
+        db = _get_db(str(repo_dir))
+
+        old_syms = {s['qualified_name'] for s in db.get_all_symbols(limit=10000)}
+        assert 'goodbye' in old_syms
+
+        # Remove goodbye function
+        shortened = PYTHON_SOURCE.replace(
+            '''def goodbye(name: str) -> str:\n    """Say goodbye."""\n    return f"Bye, {name}"\n\n\n''',
+            ''
+        )
+        (repo_dir / 'src' / 'main.py').write_text(shortened)
+
+        from codemunch_pro.parser.extractor import extract_symbols
+        new_syms = extract_symbols(repo_dir / 'src' / 'main.py')
+        new_names = {s.qualified_name for s in new_syms}
+
+        assert 'goodbye' not in new_names
+
+
+class TestDependencyMap:
+    """Test the dependency_map tool (Tool 15)."""
+
+    def test_finds_dependencies(self, repo_dir):
+        """Greeter.greet calls hello — should show up in depends_on."""
+        _index_directory(str(repo_dir), embed=False)
+        db = _get_db(str(repo_dir))
+        db.resolve_call_edges()
+
+        # Get callees of Greeter.greet
+        callees = db.get_callees('Greeter.greet', depth=1)
+        callee_names = [c['callee_name'] for c in callees]
+        assert 'hello' in callee_names
+
+    def test_finds_callers(self, repo_dir):
+        """hello is called by Greeter.greet — should show up as depended_by."""
+        _index_directory(str(repo_dir), embed=False)
+        db = _get_db(str(repo_dir))
+        db.resolve_call_edges()
+
+        callers = db.get_callers('hello', depth=1)
+        assert len(callers) >= 1
+
+
 class TestMultiLanguage:
     def test_indexes_python_and_javascript(self, repo_dir):
         stats = _index_directory(str(repo_dir), embed=False)

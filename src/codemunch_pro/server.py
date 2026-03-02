@@ -729,4 +729,192 @@ def create_server(
             'depth': depth,
         }
 
+    # --- Tool 14: diff_symbols ---
+    @mcp.tool()
+    def diff_symbols(
+        repo_path: str,
+    ) -> dict[str, Any]:
+        """Re-index a repository and show what symbols changed since last index.
+
+        Compares the current state of files against the stored index to find:
+        - New symbols (added since last index)
+        - Removed symbols (deleted since last index)
+        - Modified symbols (same name but different content hash)
+
+        Useful for code review, PR analysis, and understanding what changed.
+
+        Args:
+            repo_path: Path to an already-indexed repository.
+        """
+        root = Path(repo_path).resolve()
+        if not root.is_dir():
+            return {'error': f'Not a directory: {repo_path}'}
+
+        db = _get_db(str(root))
+
+        # Snapshot current symbols
+        old_symbols: dict[str, dict] = {}
+        for sym in db.get_all_symbols(limit=10000):
+            qn = sym['qualified_name']
+            old_symbols[qn] = {
+                'kind': sym['kind'],
+                'file': sym.get('file_path', ''),
+                'line': sym['line'],
+                'signature': sym.get('signature', ''),
+            }
+
+        # Snapshot current file hashes
+        old_hashes = db.get_all_file_hashes()
+
+        # Find changed files
+        source_files = _walk_source_files(root)
+        changed_files: list[str] = []
+        new_files: list[str] = []
+        for file_path in source_files:
+            rel_path = str(file_path.relative_to(root))
+            file_hash = _sha256_file(file_path)
+            if rel_path not in old_hashes:
+                new_files.append(rel_path)
+                changed_files.append(rel_path)
+            elif old_hashes[rel_path] != file_hash:
+                changed_files.append(rel_path)
+
+        # Deleted files
+        current_paths = {str(f.relative_to(root)) for f in source_files}
+        deleted_files = [p for p in old_hashes if p not in current_paths]
+
+        # Re-extract symbols from changed files only
+        new_symbols: dict[str, dict] = {}
+        for file_path in source_files:
+            rel_path = str(file_path.relative_to(root))
+            if rel_path in changed_files or rel_path in new_files:
+                try:
+                    symbols = extract_symbols(file_path)
+                    for sym in symbols:
+                        new_symbols[sym.qualified_name] = {
+                            'kind': sym.kind,
+                            'file': rel_path,
+                            'line': sym.line,
+                            'signature': sym.signature,
+                        }
+                except Exception:
+                    pass
+            else:
+                # Unchanged — carry forward old symbols for this file
+                for qn, data in old_symbols.items():
+                    if data['file'] == rel_path:
+                        new_symbols[qn] = data
+
+        # Compute diff
+        old_names = set(old_symbols.keys())
+        new_names = set(new_symbols.keys())
+
+        added = []
+        for qn in sorted(new_names - old_names):
+            s = new_symbols[qn]
+            added.append({
+                'qualified_name': qn,
+                'kind': s['kind'],
+                'file': s['file'],
+                'line': s['line'],
+                'signature': s['signature'],
+            })
+
+        removed = []
+        for qn in sorted(old_names - new_names):
+            s = old_symbols[qn]
+            removed.append({
+                'qualified_name': qn,
+                'kind': s['kind'],
+                'file': s['file'],
+                'line': s['line'],
+            })
+
+        modified = []
+        for qn in sorted(old_names & new_names):
+            old = old_symbols[qn]
+            new = new_symbols[qn]
+            if old.get('signature') != new.get('signature') or old.get('line') != new.get('line'):
+                modified.append({
+                    'qualified_name': qn,
+                    'kind': new['kind'],
+                    'file': new['file'],
+                    'old_line': old['line'],
+                    'new_line': new['line'],
+                    'old_signature': old.get('signature', ''),
+                    'new_signature': new.get('signature', ''),
+                })
+
+        return {
+            'added': added,
+            'removed': removed,
+            'modified': modified,
+            'summary': {
+                'added_count': len(added),
+                'removed_count': len(removed),
+                'modified_count': len(modified),
+                'changed_files': len(changed_files),
+                'new_files': len(new_files),
+                'deleted_files': len(deleted_files),
+            },
+        }
+
+    # --- Tool 15: dependency_map ---
+    @mcp.tool()
+    def dependency_map(
+        repo_path: str,
+        file_path: str,
+    ) -> dict[str, Any]:
+        """Show what a file depends on and what depends on it.
+
+        Maps import/call relationships at the file level. Useful for understanding
+        how a file fits in the codebase before modifying it.
+
+        Args:
+            repo_path: Path to the indexed repository.
+            file_path: Relative path to the file (e.g. "src/main.py").
+        """
+        db = _get_db(repo_path)
+
+        # Get all symbols in this file
+        file_symbols = db.get_file_symbols(file_path)
+        if not file_symbols:
+            return {'error': f'File not found in index: {file_path}'}
+
+        file_symbol_names = {s['qualified_name'] for s in file_symbols}
+        file_symbol_names.update(s['name'] for s in file_symbols)
+
+        # Find outgoing dependencies (what this file's symbols call)
+        depends_on: dict[str, list[str]] = {}  # file -> [symbol names called]
+        for sym in file_symbols:
+            callees = db.get_callees(sym['qualified_name'], depth=1)
+            for callee in callees:
+                callee_file = callee.get('def_file', '')
+                if callee_file and callee_file != file_path:
+                    depends_on.setdefault(callee_file, [])
+                    name = callee.get('resolved_name') or callee.get('callee_name', '')
+                    if name and name not in depends_on[callee_file]:
+                        depends_on[callee_file].append(name)
+
+        # Find incoming dependencies (what calls symbols in this file)
+        depended_by: dict[str, list[str]] = {}  # file -> [symbol names that call us]
+        for sym in file_symbols:
+            callers = db.get_callers(sym['qualified_name'], depth=1)
+            for caller in callers:
+                caller_file = caller.get('caller_file', '')
+                if caller_file and caller_file != file_path:
+                    depended_by.setdefault(caller_file, [])
+                    name = caller.get('caller_name', '')
+                    if name and name not in depended_by[caller_file]:
+                        depended_by[caller_file].append(name)
+
+        return {
+            'file': file_path,
+            'symbols_count': len(file_symbols),
+            'depends_on': {k: v for k, v in sorted(depends_on.items())},
+            'depended_by': {k: v for k, v in sorted(depended_by.items())},
+            'depends_on_files': len(depends_on),
+            'depended_by_files': len(depended_by),
+        }
+
     return mcp

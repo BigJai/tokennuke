@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.BigJai/codemunch-pro -->
 
-Intelligent code indexing MCP server. Tree-sitter AST extraction, hybrid search (FTS5 + vector), call graphs, 10 languages, incremental indexing.
+Intelligent code indexing MCP server. 15 tools, 10 languages, tree-sitter AST extraction, hybrid search (FTS5 + vector), call graphs, remote repo indexing, incremental indexing.
 
 **Save 99% of tokens** — get exact function source via byte-offset seek instead of reading entire files.
 
@@ -34,7 +34,7 @@ Add to your MCP client config:
 codemunch-pro --transport streamable-http --port 5002
 ```
 
-## 13 MCP Tools
+## 15 MCP Tools
 
 | Tool | Description |
 |------|-------------|
@@ -51,6 +51,8 @@ codemunch-pro --transport streamable-http --port 5002
 | `search_text` | Full-text search in file contents |
 | `get_callees` | What does this function call? |
 | `get_callers` | Who calls this function? |
+| `diff_symbols` | What changed since last index? (PR review) |
+| `dependency_map` | What does this file depend on? What depends on it? |
 
 ## 10 Languages
 
