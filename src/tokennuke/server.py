@@ -1,4 +1,4 @@
-"""CodeMunch Pro MCP Server — 13 tools for intelligent code indexing.
+"""TokenNuke MCP Server — 13 tools for intelligent code indexing.
 
 Supports both stdio and streamable-http transports.
 """
@@ -15,16 +15,16 @@ import pathspec
 
 from mcp.server.fastmcp import FastMCP
 
-from codemunch_pro.embedder.embed import Embedder
-from codemunch_pro.parser.extractor import extract_symbols
-from codemunch_pro.parser.languages import get_language_for_file, LANGUAGES
-from codemunch_pro.security import (
+from tokennuke.embedder.embed import Embedder
+from tokennuke.parser.extractor import extract_symbols
+from tokennuke.parser.languages import get_language_for_file, LANGUAGES
+from tokennuke.security import (
     DEFAULT_IGNORE_PATTERNS,
     is_binary_file,
     is_too_large,
     validate_path,
 )
-from codemunch_pro.storage.database import Database
+from tokennuke.storage.database import Database
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +242,7 @@ def create_server(
     """Create and configure the MCP server."""
 
     kwargs: dict[str, Any] = {
-        'name': 'CodeMunch Pro',
+        'name': 'TokenNuke',
     }
     if transport == 'streamable-http':
         kwargs.update({
@@ -307,7 +307,7 @@ def create_server(
             sparse_paths: Optional list of paths to index (e.g. ["src/", "lib/"]).
             embed: Whether to generate vector embeddings (default True).
         """
-        from codemunch_pro.remote import fetch_repo
+        from tokennuke.remote import fetch_repo
 
         try:
             fetch_result = fetch_repo(
@@ -352,7 +352,7 @@ def create_server(
             repos.append(stats)
 
         # Also check for DB files on disk
-        from codemunch_pro.storage.database import DEFAULT_DB_DIR
+        from tokennuke.storage.database import DEFAULT_DB_DIR
         if DEFAULT_DB_DIR.exists():
             for db_file in DEFAULT_DB_DIR.glob('*.db'):
                 # Open and check if not already loaded

@@ -1,4 +1,4 @@
-"""CLI entry point for CodeMunch Pro."""
+"""CLI entry point for TokenNuke."""
 
 import argparse
 import sys
@@ -6,11 +6,11 @@ import sys
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        prog='codemunch-pro',
+        prog='tokennuke',
         description='Intelligent code indexing MCP server',
     )
     parser.add_argument(
-        '--version', action='version', version=f'%(prog)s 0.1.0',
+        '--version', action='version', version=f'%(prog)s 1.3.0',
     )
     parser.add_argument(
         '--transport',
@@ -27,7 +27,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    from codemunch_pro.server import create_server
+    from tokennuke.server import create_server
 
     mcp = create_server(transport=args.transport, port=args.port)
 

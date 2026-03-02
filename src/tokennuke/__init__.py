@@ -1,7 +1,7 @@
-"""CodeMunch Pro — Intelligent Code Indexing MCP Server.
+"""TokenNuke — Intelligent Code Indexing MCP Server.
 
 Tree-sitter AST extraction, hybrid search (FTS5 + vector),
 call graphs, 10 languages, incremental indexing.
 """
 
-__version__ = '1.2.0'
+__version__ = '1.3.0'

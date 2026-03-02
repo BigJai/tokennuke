@@ -7,9 +7,9 @@ from pathlib import Path
 
 from tree_sitter_language_pack import get_parser
 
-from codemunch_pro.parser.languages import LanguageSpec, get_language_for_file, get_spec
-from codemunch_pro.parser.symbols import CallEdge, Symbol
-from codemunch_pro.security import is_binary_file, is_too_large
+from tokennuke.parser.languages import LanguageSpec, get_language_for_file, get_spec
+from tokennuke.parser.symbols import CallEdge, Symbol
+from tokennuke.security import is_binary_file, is_too_large
 
 logger = logging.getLogger(__name__)
 

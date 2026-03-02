@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from codemunch_pro.parser.extractor import extract_symbols
-from codemunch_pro.parser.languages import get_language_for_file
-from codemunch_pro.storage.database import Database
+from tokennuke.parser.extractor import extract_symbols
+from tokennuke.parser.languages import get_language_for_file
+from tokennuke.storage.database import Database
 
 
 PYTHON_SOURCE = '''\

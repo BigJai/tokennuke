@@ -1,15 +1,17 @@
-# CodeMunch Pro
+# TokenNuke
 
-<!-- mcp-name: io.github.BigJai/codemunch-pro -->
+<!-- mcp-name: io.github.BigJai/tokennuke -->
 
 Intelligent code indexing MCP server. 15 tools, 10 languages, tree-sitter AST extraction, hybrid search (FTS5 + vector), call graphs, remote repo indexing, incremental indexing.
 
 **Save 99% of tokens** — get exact function source via byte-offset seek instead of reading entire files.
 
+> Formerly `codemunch-pro`. Same code, better name.
+
 ## Install
 
 ```bash
-pip install codemunch-pro
+pip install tokennuke
 ```
 
 ## Quick Start
@@ -21,8 +23,8 @@ Add to your MCP client config:
 ```json
 {
   "mcpServers": {
-    "codemunch-pro": {
-      "command": "codemunch-pro"
+    "tokennuke": {
+      "command": "tokennuke"
     }
   }
 }
@@ -31,7 +33,7 @@ Add to your MCP client config:
 ### HTTP Server
 
 ```bash
-codemunch-pro --transport streamable-http --port 5002
+tokennuke --transport streamable-http --port 5002
 ```
 
 ## 15 MCP Tools
@@ -74,7 +76,7 @@ Combines BM25 keyword matching with semantic vector similarity using Reciprocal 
 ### Call Graphs
 Traces function calls through the AST. `get_callees("main")` shows what `main` calls. `get_callers("authenticate")` shows who calls `authenticate`. Supports depth traversal.
 
-### Remote Repo Indexing (v1.1)
+### Remote Repo Indexing
 Index any public GitHub or GitLab repo by URL — no git binary needed. Downloads the tarball via API, extracts, and indexes. Cached locally with SHA-based freshness checks. Supports private repos with auth tokens and sparse paths.
 
 ### Full-Text Content Search
@@ -87,12 +89,12 @@ Search raw file contents — string literals, TODO comments, config values, erro
 3. **Store** — SQLite database per repo with FTS5 virtual tables
 4. **Embed** — FastEmbed (ONNX, CPU-only) generates 384-dim vectors for semantic search
 5. **Graph** — Call expressions extracted from function bodies, edges stored and resolved
-6. **Serve** — FastMCP exposes 13 tools via stdio or HTTP
+6. **Serve** — FastMCP exposes 15 tools via stdio or HTTP
 
 ## Architecture
 
 ```
-~/.codemunch-pro/
+~/.tokennuke/
 ├── myproject_a1b2c3d4e5f6.db    # Per-repo SQLite database
 ├── otherproject_7890abcdef.db
 └── ...

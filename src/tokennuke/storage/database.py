@@ -10,11 +10,11 @@ from pathlib import Path
 
 import sqlite_vec
 
-from codemunch_pro.parser.symbols import CallEdge, Symbol
+from tokennuke.parser.symbols import CallEdge, Symbol
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_DB_DIR = Path.home() / '.codemunch-pro'
+DEFAULT_DB_DIR = Path.home() / '.tokennuke'
 
 SCHEMA_VERSION = 1
 

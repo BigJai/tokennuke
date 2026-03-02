@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codemunch_pro.remote import (
+from tokennuke.remote import (
     _apply_sparse_filter,
     _cache_dir_for_repo,
     _safe_extract_tarball,
@@ -19,16 +19,16 @@ from codemunch_pro.remote import (
 
 class TestParseRepoUrl:
     def test_github_https(self):
-        r = parse_repo_url('https://github.com/BigJai/codemunch-pro')
+        r = parse_repo_url('https://github.com/BigJai/tokennuke')
         assert r['host'] == 'github.com'
         assert r['owner'] == 'BigJai'
-        assert r['repo'] == 'codemunch-pro'
+        assert r['repo'] == 'tokennuke'
         assert r['url_type'] == 'github'
 
     def test_github_with_git_suffix(self):
-        r = parse_repo_url('https://github.com/BigJai/codemunch-pro.git')
+        r = parse_repo_url('https://github.com/BigJai/tokennuke.git')
         assert r['owner'] == 'BigJai'
-        assert r['repo'] == 'codemunch-pro'
+        assert r['repo'] == 'tokennuke'
         assert r['url_type'] == 'github'
 
     def test_github_with_trailing_slash(self):
@@ -42,7 +42,7 @@ class TestParseRepoUrl:
         assert r['repo'] == 'repo'
 
     def test_github_no_protocol(self):
-        r = parse_repo_url('github.com/BigJai/codemunch-pro')
+        r = parse_repo_url('github.com/BigJai/tokennuke')
         assert r['url_type'] == 'github'
         assert r['owner'] == 'BigJai'
 
@@ -186,14 +186,14 @@ class TestFetchRepoIntegration:
     def test_fetch_github_repo(self, tmp_path):
         """Fetch a small real GitHub repo."""
         result = fetch_repo(
-            'https://github.com/BigJai/codemunch-pro',
+            'https://github.com/BigJai/tokennuke',
             cache_dir=tmp_path,
         )
 
         assert 'error' not in result
         assert result['url_type'] == 'github'
         assert result['owner'] == 'BigJai'
-        assert result['repo'] == 'codemunch-pro'
+        assert result['repo'] == 'tokennuke'
         assert result['branch']  # Should have resolved default branch
         assert result['sha']  # Should have latest SHA
         assert Path(result['local_path']).is_dir()
@@ -206,13 +206,13 @@ class TestFetchRepoIntegration:
     def test_cache_hit(self, tmp_path):
         """Second fetch should use cache."""
         result1 = fetch_repo(
-            'https://github.com/BigJai/codemunch-pro',
+            'https://github.com/BigJai/tokennuke',
             cache_dir=tmp_path,
         )
         assert not result1.get('cached')
 
         result2 = fetch_repo(
-            'https://github.com/BigJai/codemunch-pro',
+            'https://github.com/BigJai/tokennuke',
             cache_dir=tmp_path,
         )
         assert result2.get('cached')
@@ -229,7 +229,7 @@ class TestFetchRepoIntegration:
     def test_fetch_with_branch(self, tmp_path):
         """Fetch a specific branch."""
         result = fetch_repo(
-            'https://github.com/BigJai/codemunch-pro',
+            'https://github.com/BigJai/tokennuke',
             branch='main',
             cache_dir=tmp_path,
         )
@@ -239,7 +239,7 @@ class TestFetchRepoIntegration:
     def test_fetch_with_sparse_paths(self, tmp_path):
         """Sparse checkout should only keep specified paths."""
         result = fetch_repo(
-            'https://github.com/BigJai/codemunch-pro',
+            'https://github.com/BigJai/tokennuke',
             sparse_paths=['src/'],
             cache_dir=tmp_path,
         )

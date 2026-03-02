@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from codemunch_pro.server import create_server, _index_directory, _get_db
+from tokennuke.server import create_server, _index_directory, _get_db
 
 
 PYTHON_SOURCE = '''\
@@ -146,13 +146,13 @@ class TestServerTools:
         """Call an MCP tool by name, bypassing the MCP protocol."""
         # Access the tool functions registered on the server
         # Since we're testing directly, call the inner functions
-        from codemunch_pro.server import (
+        from tokennuke.server import (
             _get_db, _index_directory, _walk_source_files,
         )
 
         # Map tool names to their implementations
         # The tools are registered as closures, so we re-import server module
-        import codemunch_pro.server as srv
+        import tokennuke.server as srv
         mcp = create_server()
 
         # Tools are registered as closures. We test via direct function call.
@@ -265,12 +265,12 @@ class TestDiffSymbols:
 
     def test_no_changes_empty_diff(self, repo_dir):
         """When nothing changed, diff should be empty."""
-        from codemunch_pro.server import create_server
+        from tokennuke.server import create_server
         _index_directory(str(repo_dir), embed=False)
 
         # Import diff function directly
-        from codemunch_pro.server import _get_db, _walk_source_files, _sha256_file
-        from codemunch_pro.parser.extractor import extract_symbols
+        from tokennuke.server import _get_db, _walk_source_files, _sha256_file
+        from tokennuke.parser.extractor import extract_symbols
 
         db = _get_db(str(repo_dir))
         old_symbols = {s['qualified_name']: s for s in db.get_all_symbols(limit=10000)}
@@ -301,7 +301,7 @@ class TestDiffSymbols:
         old_syms = {s['qualified_name'] for s in db.get_all_symbols(limit=10000)}
 
         # Re-extract the changed file
-        from codemunch_pro.parser.extractor import extract_symbols
+        from tokennuke.parser.extractor import extract_symbols
         new_syms_list = extract_symbols(main_py)
         new_names = {s.qualified_name for s in new_syms_list}
 
@@ -323,7 +323,7 @@ class TestDiffSymbols:
         )
         (repo_dir / 'src' / 'main.py').write_text(shortened)
 
-        from codemunch_pro.parser.extractor import extract_symbols
+        from tokennuke.parser.extractor import extract_symbols
         new_syms = extract_symbols(repo_dir / 'src' / 'main.py')
         new_names = {s.qualified_name for s in new_syms}
 

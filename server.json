@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.BigJai/codemunch-pro",
-  "description": "Code indexing MCP: 15 tools, 10 languages, hybrid search, call graphs, O(1) retrieval.",
+  "name": "io.github.BigJai/tokennuke",
+  "description": "Code indexing MCP: 15 tools, 10 languages, hybrid search, call graphs, O(1) retrieval. Save 99% of tokens.",
   "repository": {
-    "url": "https://github.com/BigJai/codemunch-pro",
+    "url": "https://github.com/BigJai/tokennuke",
     "source": "github"
   },
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packages": [
     {
       "registryType": "pypi",
-      "identifier": "codemunch-pro",
-      "version": "1.2.0",
+      "identifier": "tokennuke",
+      "version": "1.3.0",
       "transport": {
         "type": "stdio"
       },

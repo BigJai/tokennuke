@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from codemunch_pro.parser.extractor import extract_symbols
-from codemunch_pro.parser.languages import get_language_for_file, LANGUAGES
-from codemunch_pro.parser.symbols import Symbol, CallEdge
+from tokennuke.parser.extractor import extract_symbols
+from tokennuke.parser.languages import get_language_for_file, LANGUAGES
+from tokennuke.parser.symbols import Symbol, CallEdge
 
 
 # --- Language detection ---

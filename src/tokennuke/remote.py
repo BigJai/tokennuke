@@ -19,7 +19,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CACHE_DIR = Path.home() / '.codemunch-pro' / 'repos'
+DEFAULT_CACHE_DIR = Path.home() / '.tokennuke' / 'repos'
 _GITHUB_RE = re.compile(
     r'(?:https?://)?github\.com/([^/]+)/([^/.\s]+?)(?:\.git)?(?:/.*)?$'
 )
@@ -30,7 +30,7 @@ _GENERIC_GIT_RE = re.compile(
     r'(?:https?://)?([^/]+)/.*?([^/.\s]+?)(?:\.git)?$'
 )
 
-USER_AGENT = 'CodeMunch-Pro/1.1 (https://github.com/BigJai/codemunch-pro)'
+USER_AGENT = 'TokenNuke/1.1 (https://github.com/BigJai/tokennuke)'
 DOWNLOAD_TIMEOUT = 120.0  # seconds
 
 
@@ -85,7 +85,7 @@ def _cache_dir_for_repo(
 
 
 def _get_meta_path(cache_dir: Path) -> Path:
-    return cache_dir / '.codemunch-meta.json'
+    return cache_dir / '.tokennuke-meta.json'
 
 
 def _read_meta(cache_dir: Path) -> dict:
@@ -389,7 +389,7 @@ def _apply_sparse_filter(repo_dir: Path, sparse_paths: list[str]) -> None:
     keep_prefixes = [p.rstrip('/') for p in sparse_paths]
 
     for item in list(repo_dir.rglob('*')):
-        if item.name == '.codemunch-meta.json':
+        if item.name == '.tokennuke-meta.json':
             continue
         if not item.is_file():
             continue
